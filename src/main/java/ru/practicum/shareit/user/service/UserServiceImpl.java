@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.user.dao.UserDao;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.exception.BlankEmailException;
+import ru.practicum.shareit.user.exception.DuplicateEmailException;
 import ru.practicum.shareit.user.model.User;
 
 @Service
@@ -18,12 +20,16 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserDto createUser(UserDto userDto) {
+    checkEmailPresents(userDto);
+    checkEmailUniqueness(userDto);
+
     var user = storage.createUser(UserMapper.toUser(userDto));
     return UserMapper.toUserDto(user);
   }
 
   @Override
   public UserDto updateUser(long userId, UserDto userDto) {
+    checkEmailUniqueness(userDto);
     var userPreviousVersion = storage.getUser(userId);
     var updatedUser = User.builder()
         .id(userId)
@@ -50,5 +56,22 @@ public class UserServiceImpl implements UserService {
   @Override
   public void deleteUser(long userId) {
     storage.deleteUser(userId);
+  }
+
+  private void checkEmailUniqueness(UserDto userDto) {
+    var isEmailAlreadyExists = storage.getUsers().stream()
+        .map(User::getEmail)
+        .collect(Collectors.toList())
+        .contains(userDto.getEmail());
+
+    if (isEmailAlreadyExists) {
+      throw new DuplicateEmailException("Данный адрес электронной почты уже зарегистрирован");
+    }
+  }
+
+  private void checkEmailPresents(UserDto userDto) {
+    if (userDto.getEmail() == null || userDto.getEmail().isBlank()) {
+      throw new BlankEmailException("Адрес электронной почты должен быть заполнен");
+    }
   }
 }
