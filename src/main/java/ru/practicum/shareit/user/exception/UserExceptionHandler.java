@@ -19,4 +19,10 @@ public class UserExceptionHandler {
   public String handleBlankEmailException(final BlankEmailException e) {
     return e.getMessage();
   }
+
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public String handleUserDoesNotExistsException(final UserDoesNotExistsException e) {
+    return e.getMessage();
+  }
 }

@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserDto getUser(long userId) {
-    return UserMapper.toUserDto(storage.getUser(userId));
+    return storage.getUser(userId) != null ? UserMapper.toUserDto(storage.getUser(userId)) : null;
   }
 
   @Override
